@@ -24,6 +24,7 @@ RUN apt-get update && \
         python \
         python3 \
         python3-pip \
+        python3-virtualenv \
         python3-pexpect \
         xz-utils  \
         locales \
@@ -60,6 +61,12 @@ RUN apt-get update && \
     /usr/sbin/locale-gen en_US.UTF-8 && \
     echo 'dash dash/sh boolean false' | debconf-set-selections && \
     DEBIAN_FRONTEND=noninteractive dpkg-reconfigure dash
+
+# Install buildtools due to python 3.8
+
+COPY install-buildtools.sh /
+RUN bash /install-buildtools.sh && \
+    rm /install-buildtools.sh
 
 COPY build-install-dumb-init.sh /
 RUN  bash /build-install-dumb-init.sh && \

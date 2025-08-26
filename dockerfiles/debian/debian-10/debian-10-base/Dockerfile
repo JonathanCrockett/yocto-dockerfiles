@@ -8,6 +8,9 @@ FROM debian:10
 
 ARG TARGETPLATFORM
 
+# deb.debian.org no longer contains buster, must use archive.debian.org instead
+RUN sed -i 's/deb.debian.org/archive.debian.org/g' /etc/apt/sources.list
+
 RUN apt-get clean && \
     apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y \

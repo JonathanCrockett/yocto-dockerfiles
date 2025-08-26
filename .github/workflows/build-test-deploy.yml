@@ -3,6 +3,8 @@ on:
   push:
     branches:
       - master
+      - armv8
+
   pull_request:
 
   # Allow for manually running
@@ -14,7 +16,7 @@ on:
 
 jobs:
   build-test-deploy:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.targetplatform == 'linux/amd64' && 'ubuntu-latest' || 'ubuntu-24.04-arm' }}
     permissions:
       packages: write
     strategy:
@@ -37,23 +39,24 @@ jobs:
           ubuntu-24.04
         ]
         targetplatform: [
-          linux/amd64
+          linux/amd64,
+          linux/arm64
         ]
     env:
       DISTRO_TO_BUILD: ${{ matrix.distro_to_build }}
       TARGETPLATFORM: ${{ matrix.targetplatform }}
-      REPO: crops/yocto
+      REPO: jonathan/yocto
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
       GHCR_USERNAME: ${{ github.actor }}
       GHCR_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       # Build and test the images
       - name: Run build-and-test.sh
-        run: ./build_container.sh
+        run: ./build_container.sh && for docker_image in $(docker images -q); do docker inspect --format='{{.Os}}/{{.Architecture}} {{.RepoTags}}' ${docker_image}; done
 
       # Deploy the images
       - name: Deploy
